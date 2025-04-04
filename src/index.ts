@@ -1,7 +1,7 @@
 import { AppState } from './components/AppData';
 import { EventEmitter } from './components/base/events';
 import { CardInBasket, CardInCatalog, CardInModal } from './components/Cards';
-import { Basket } from './components/common/Basket';
+import { Basket } from './components/Basket';
 import { Modal } from './components/common/Modal';
 import { Success } from './components/common/Success';
 import { Contacts } from './components/Contacts';
@@ -88,10 +88,12 @@ events.on('basket:open', () => {
 			category: item.category,
 		});
 	});
-	basket.total = appData.basket.reduce(
+	const basketTotal = appData.basket.reduce(
 		(accumulator, currentItem) => accumulator + currentItem.price,
 		0
 	);
+	basket.total = basketTotal;
+	basket.valid = basketTotal > 0 ? true : false;
 	modal.render({ content: basket.render() });
 });
 
@@ -117,6 +119,7 @@ events.on('card:delete', (item: IProduct) => {
 		(accumulator, currentItem) => accumulator + currentItem.price,
 		0
 	);
+	page.counter = appData.basket.length;
 	modal.render({ content: basket.render() });
 });
 
