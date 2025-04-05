@@ -1,5 +1,5 @@
 import { IOrder, IOrderResult, IProduct } from '../types';
-import { Api, ApiListResponse } from './base/Api';
+import { Api, ApiListResponse } from './base/api';
 
 export interface ILarekAPI {
 	getProductList: () => Promise<IProduct[]>;

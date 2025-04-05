@@ -6,7 +6,7 @@ import {
 	PAYMENT_STATUS,
 } from '../utils/constants';
 import { ensureElement } from '../utils/utils';
-import { IEvents } from './base/Events';
+import { IEvents } from './base/events';
 import { Form } from './common/Form';
 
 export class Order extends Form<IOrderPayment> {

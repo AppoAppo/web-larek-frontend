@@ -1,7 +1,7 @@
 import { APP_EVENTS } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
-import { IEvents } from '../base/Events';
+import { IEvents } from '../base/events';
 
 interface IModalData {
 	content: HTMLElement;
