@@ -21,6 +21,7 @@ import {
 	CARD_MODAL_ACTIONS,
 	DEFAULT_BLOCK_NAME,
 	ORDER_PAYMENT_FIELDS,
+	APP_EVENTS,
 } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 
@@ -50,7 +51,7 @@ const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 const cardModal = new CardInModal(cloneTemplate(cardPreviewTemplate), {
 	onClick: () => {
-		events.emit('card-product:button', { value: cardModal.buttonText });
+		events.emit(APP_EVENTS.cardProductButton, { value: cardModal.buttonText });
 	},
 });
 const order = new Order(cloneTemplate(orderTemplate), events);
@@ -60,13 +61,13 @@ const contacts = new Contacts(cloneTemplate(contactsTemplate), events);
 // Поймали событие, сделали что нужно
 
 //Данные загружены с сервера
-events.on('initialData:loaded', () => {
+events.on(APP_EVENTS.initialDataLoaded, () => {
 	page.catalog = appData.catalog.map((item) => {
 		const card = new CardInCatalog(
 			DEFAULT_BLOCK_NAME,
 			cloneTemplate(cardCatalogTemplate),
 			{
-				onClick: () => events.emit('card:select', item),
+				onClick: () => events.emit(APP_EVENTS.cardSelect, item),
 			}
 		);
 		return card.render({
@@ -79,15 +80,15 @@ events.on('initialData:loaded', () => {
 });
 
 // Открыть лот
-events.on('card:select', (item: IProduct) => {
+events.on(APP_EVENTS.cardSelect, (item: IProduct) => {
 	appData.setPreview(item);
 });
 
 // Открыть корзину
-events.on('basket:open', () => {
+events.on(APP_EVENTS.basketOpen, () => {
 	basket.items = appData.basket.map((item, index) => {
 		const card = new CardInBasket(cloneTemplate(cardBasketTemplate), {
-			onClick: () => events.emit('card:delete', item),
+			onClick: () => events.emit(APP_EVENTS.cardDelete, item),
 		});
 		card.itemIndex = index + 1;
 		return card.render({
@@ -106,17 +107,17 @@ events.on('basket:open', () => {
 	modal.render({ content: basket.render() });
 });
 
-events.on('card-product:presence', (presence: { value: boolean }) => {
+events.on(APP_EVENTS.cardProductPresence, (presence: { value: boolean }) => {
 	cardModal.buttonText = presence.value
 		? CARD_MODAL_ACTIONS.remove
 		: CARD_MODAL_ACTIONS.buy;
 });
 
-events.on('card:delete', (item: IProduct) => {
+events.on(APP_EVENTS.cardDelete, (item: IProduct) => {
 	appData.removeFromBasket(item);
 	basket.items = appData.basket.map((item, index) => {
 		const card = new CardInBasket(cloneTemplate(cardBasketTemplate), {
-			onClick: () => events.emit('card:delete', item),
+			onClick: () => events.emit(APP_EVENTS.cardDelete, item),
 		});
 		card.itemIndex = index + 1;
 		return card.render({
@@ -134,7 +135,7 @@ events.on('card:delete', (item: IProduct) => {
 	modal.render({ content: basket.render() });
 });
 
-events.on('card-product:button', (event: { value: string }) => {
+events.on(APP_EVENTS.cardProductButton, (event: { value: string }) => {
 	if (!appData.preview) return;
 	api
 		.getProductItem(appData.preview)
@@ -152,7 +153,7 @@ events.on('card-product:button', (event: { value: string }) => {
 });
 
 // Изменен открытый выбранный лот
-events.on('preview:changed', (item: IProduct) => {
+events.on(APP_EVENTS.previewChanged, (item: IProduct) => {
 	const showItem = (item: IProduct) => {
 		modal.render({
 			content: cardModal.render({
@@ -178,7 +179,7 @@ events.on('preview:changed', (item: IProduct) => {
 });
 
 // Открыть форму платежа
-events.on('order:open', () => {
+events.on(APP_EVENTS.orderOpen, () => {
 	modal.render({
 		content: order.render({
 			payment: appData.order.payment,
@@ -190,7 +191,7 @@ events.on('order:open', () => {
 });
 
 // Отправлена форма заказа
-events.on('order:submit', () => {
+events.on(APP_EVENTS.orderSubmit, () => {
 	modal.render({
 		content: contacts.render({
 			phone: '',
@@ -202,7 +203,7 @@ events.on('order:submit', () => {
 });
 
 // Отправлена форма контактов с данными на бек
-events.on('contacts:submit', () => {
+events.on(APP_EVENTS.contactsSubmit, () => {
 	api
 		.orderProducts(appData.orderData)
 		.then((result) => {
@@ -224,47 +225,63 @@ events.on('contacts:submit', () => {
 });
 
 // Изменилось состояние валидации формы платежа
-events.on('formErrors.order:change', (errors: Partial<IOrderPayment>) => {
-	const { payment, address } = errors;
-	order.valid = !payment && !address;
-	order.errors = Object.values({ payment, address })
-		.filter((i) => !!i)
-		.join('; ');
-});
+events.on(
+	APP_EVENTS.formErrorsOrderChange,
+	(errors: Partial<IOrderPayment>) => {
+		const { payment, address } = errors;
+		order.valid = !payment && !address;
+		order.errors = Object.values({ payment, address })
+			.filter((i) => !!i)
+			.join('; ');
+	}
+);
 // Изменилось состояние валидации формы контактов
-events.on('formErrors.contact:change', (errors: Partial<IOrderContacts>) => {
-	const { phone, email } = errors;
-	contacts.valid = !phone && !email;
-	contacts.errors = Object.values({ phone, email })
-		.filter((i) => !!i)
-		.join('; ');
-});
+events.on(
+	APP_EVENTS.formErrorsContactChange,
+	(errors: Partial<IOrderContacts>) => {
+		const { phone, email } = errors;
+		contacts.valid = !phone && !email;
+		contacts.errors = Object.values({ phone, email })
+			.filter((i) => !!i)
+			.join('; ');
+	}
+);
 
 // Изменилось одно из полей на форме платежа
 events.on(
-	/^order\..*:change/,
+	APP_EVENTS.orderChangePayment,
 	(data: { field: keyof IOrderPayment; value: string }) => {
 		appData.setOrderField(data.field, data.value);
-		if (data.field === ORDER_PAYMENT_FIELDS.payment) {
-			order.payment = data.value as PaymentStatus;
-		}
+		order.payment = data.value as PaymentStatus;
+	}
+);
+events.on(
+	APP_EVENTS.orderChangeAddress,
+	(data: { field: keyof IOrderPayment; value: string }) => {
+		appData.setOrderField(data.field, data.value);
 	}
 );
 // Изменилось одно из полей на форме контактов
 events.on(
-	/^contacts\..*:change/,
+	APP_EVENTS.contactsChangeEmail,
+	(data: { field: keyof IOrderContacts; value: string }) => {
+		appData.setContactField(data.field, data.value);
+	}
+);
+events.on(
+	APP_EVENTS.contactsChangePhone,
 	(data: { field: keyof IOrderContacts; value: string }) => {
 		appData.setContactField(data.field, data.value);
 	}
 );
 
 // Блокируем прокрутку страницы если открыта модалка
-events.on('modal:open', () => {
+events.on(APP_EVENTS.modalOpen, () => {
 	page.locked = true;
 });
 
 // ... и разблокируем
-events.on('modal:close', () => {
+events.on(APP_EVENTS.modalClose, () => {
 	page.locked = false;
 });
 
@@ -273,7 +290,7 @@ api
 	.getProductList()
 	.then((products) => {
 		appData.setCatalog(products);
-		events.emit('initialData:loaded');
+		events.emit(APP_EVENTS.initialDataLoaded);
 	})
 	.catch((err) => {
 		console.error(err);
