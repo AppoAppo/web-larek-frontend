@@ -1,3 +1,9 @@
+import { CategoryType } from '../types';
+import {
+	CATEGORY_CLASS,
+	DEFAULT_BLOCK_NAME,
+	IMAGE_EXTENSION,
+} from '../utils/constants';
 import { ensureElement } from '../utils/utils';
 import { Card, ICardActions } from './common/Card';
 
@@ -14,7 +20,7 @@ export class CardInCatalog extends Card {
 		container: HTMLElement,
 		actions?: ICardActions
 	) {
-		super('card', container, actions);
+		super(DEFAULT_BLOCK_NAME, container, actions);
 		this._image = ensureElement<HTMLImageElement>(
 			`.${blockName}__image`,
 			container
@@ -22,36 +28,17 @@ export class CardInCatalog extends Card {
 		this._category = container.querySelector(`.${blockName}__category`);
 	}
 
-	set category(value: string) {
-		let categoryClass = '';
-		switch (value) {
-			case 'софт-скил':
-				categoryClass = 'card__category_soft';
-				break;
-			case 'другое':
-				categoryClass = 'card__category_other';
-				break;
-			case 'дополнительное':
-				categoryClass = 'card__category_additional';
-				break;
-			case 'кнопка':
-				categoryClass = 'card__category_button';
-				break;
-			case 'хард-скил':
-				categoryClass = 'card__category_hard';
-				break;
-		}
-		this._category.classList.value = `card__category ${categoryClass}`;
+	set category(value: CategoryType) {
+		this._category.classList.value = `card__category ${CATEGORY_CLASS[value]}`;
 		this.setText(this._category, value);
 	}
 
-	get category(): string {
-		return this._category.textContent || '';
-	}
-
 	set image(value: string) {
-		if (this instanceof CardInBasket) return; //TODO
-		this.setImage(this._image, value.slice(0, -3) + 'png', this.title);
+		this.setImage(
+			this._image,
+			value.slice(0, -3) + IMAGE_EXTENSION,
+			this.title
+		);
 	}
 }
 
@@ -60,7 +47,7 @@ export class CardInModal extends CardInCatalog {
 	protected _buttonText: string;
 
 	constructor(container: HTMLElement, actions?: ICardActions) {
-		super('card', container, actions);
+		super(DEFAULT_BLOCK_NAME, container, actions);
 
 		this._description = container.querySelector(
 			`.${this.blockName}__description`
@@ -69,7 +56,7 @@ export class CardInModal extends CardInCatalog {
 
 	set buttonText(text: string) {
 		this._buttonText = text;
-		this._button.textContent = this._buttonText;
+		this.setText(this._button, this._buttonText);
 	}
 
 	get buttonText(): string {
@@ -84,7 +71,7 @@ export class CardInModal extends CardInCatalog {
 export class CardInBasket extends Card {
 	protected _itemIndex: HTMLElement;
 	constructor(container: HTMLElement, actions?: ICardActions) {
-		super('card', container, actions);
+		super(DEFAULT_BLOCK_NAME, container, actions);
 		this._itemIndex = container.querySelector(`.basket__item-index`);
 	}
 

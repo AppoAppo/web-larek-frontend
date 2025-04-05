@@ -1,6 +1,7 @@
+import { APP_EVENTS, BASKET_IS_EMPTY } from '../utils/constants';
 import { createElement, ensureElement, formatNumber } from '../utils/utils';
 import { Component } from './base/Component';
-import { EventEmitter } from './base/events';
+import { EventEmitter } from './base/Events';
 
 interface IBasketView {
 	items: HTMLElement[];
@@ -21,7 +22,7 @@ export class Basket extends Component<IBasketView> {
 
 		if (this._button) {
 			this._button.addEventListener('click', () => {
-				events.emit('order:open');
+				events.emit(APP_EVENTS.orderOpen);
 			});
 		}
 
@@ -34,7 +35,7 @@ export class Basket extends Component<IBasketView> {
 		} else {
 			this._list.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
-					textContent: 'Корзина пуста',
+					textContent: BASKET_IS_EMPTY,
 				})
 			);
 		}

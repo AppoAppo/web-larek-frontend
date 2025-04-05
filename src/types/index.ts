@@ -5,7 +5,7 @@ export interface IProduct {
 	image: string;
 	title: string;
 	category: string;
-	price: number;
+	price: number | null;
 }
 
 //Состояние приложения
@@ -16,14 +16,8 @@ export interface IAppState {
 	order: IOrder | null;
 }
 
-//тексты кнопки в модальном окне товара
-export enum CardModalActions {
-	remove = 'Удалить',
-	buy = 'Купить',
-}
-
 // доступные виды платежа
-export type PaymentStatus = 'card' | 'cash' | undefined;
+export type PaymentStatus = 'card' | 'cash';
 
 //Данные платежа
 export interface IOrderPayment {
@@ -51,4 +45,11 @@ export interface IOrderResult {
 }
 
 //ошибки валидации форм
-export type FormErrors = Partial<Record<keyof IOrder, string>>;
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
+
+export type CategoryType =
+	| 'софт-скил'
+	| 'другое'
+	| 'дополнительное'
+	| 'кнопка'
+	| 'хард-скил';

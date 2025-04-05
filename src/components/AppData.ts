@@ -7,15 +7,20 @@ import {
 	IProduct,
 	PaymentStatus,
 } from '../types';
+import {
+	APP_EVENTS,
+	ORDER_PAYMENT_FIELDS,
+	PAYMENT_STATUS,
+	VALIDATION_ERRORS,
+} from '../utils/constants';
 import { Model } from './base/Model';
 
 export class AppState extends Model<IAppState> {
 	basket: IProduct[] = [];
 	catalog: IProduct[];
-	loading: boolean;
 	order: Partial<IOrderPayment> = {
 		address: '',
-		payment: null,
+		payment: PAYMENT_STATUS.bycard,
 	};
 	contacts: Partial<IOrderContacts> = {
 		email: '',
@@ -26,46 +31,46 @@ export class AppState extends Model<IAppState> {
 
 	addToBasket(item: IProduct) {
 		this.basket.push(item);
-		this.events.emit('card-product:presence', { value: true });
+		this.events.emit(APP_EVENTS.cardProductPresence, { value: true });
 	}
 
 	removeFromBasket(item: IProduct) {
 		this.basket = this.basket.filter((basketItem) => basketItem.id !== item.id);
-		this.events.emit('card-product:presence', { value: false });
+		this.events.emit(APP_EVENTS.cardProductPresence, { value: false });
 	}
 
 	setCatalog(items: IProduct[]) {
 		this.catalog = items;
-		this.emitChanges('items:changed', { catalog: this.catalog });
+		this.emitChanges(APP_EVENTS.itemsChanged, { catalog: this.catalog });
 	}
 
 	setPreview(item: IProduct) {
 		this.preview = item.id;
-		this.emitChanges('preview:changed', item);
+		this.emitChanges(APP_EVENTS.previewChanged, item);
 	}
 
 	setOrderField(field: keyof IOrderPayment, value: string) {
-		if (field === 'payment') {
+		if (field === ORDER_PAYMENT_FIELDS.payment) {
 			this.order[field] = value as PaymentStatus;
 		} else {
 			this.order[field] = value;
 		}
 
 		if (this.validateOrder()) {
-			this.events.emit('order:ready', this.order);
+			this.events.emit(APP_EVENTS.orderReady, this.order);
 		}
 	}
 
 	validateOrder() {
 		const errors: typeof this.formErrors = {};
 		if (!this.order.payment) {
-			errors.payment = 'Необходимо выбрать вид платежа';
+			errors.payment = VALIDATION_ERRORS.payment;
 		}
 		if (!this.order.address) {
-			errors.address = 'Необходимо указать адрес';
+			errors.address = VALIDATION_ERRORS.address;
 		}
 		this.formErrors = errors;
-		this.events.emit('formErrors.order:change', this.formErrors);
+		this.events.emit(APP_EVENTS.formErrorsOrderChange, this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
 
@@ -73,25 +78,27 @@ export class AppState extends Model<IAppState> {
 		this.contacts[field] = value;
 
 		if (this.validateContact()) {
-			this.events.emit('contacts:ready', this.order);
+			this.events.emit(APP_EVENTS.contactsReady, this.order);
 		}
 	}
 
 	validateContact() {
 		const errors: typeof this.formErrors = {};
 		if (!this.contacts.email) {
-			errors.email = 'Необходимо указать email';
+			errors.email = VALIDATION_ERRORS.email;
 		}
 		if (!this.contacts.phone) {
-			errors.phone = 'Необходимо указать телефон';
+			errors.phone = VALIDATION_ERRORS.phone;
 		}
 		this.formErrors = errors;
-		this.events.emit('formErrors.contact:change', this.formErrors);
+		this.events.emit(APP_EVENTS.formErrorsContactChange, this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
 
 	clearBasket() {
 		this.basket = [];
+		this.order = { payment: PAYMENT_STATUS.bycard, address: '' };
+		this.contacts = { phone: '', email: '' };
 	}
 
 	get orderData(): IOrder {

@@ -1,6 +1,7 @@
+import { APP_EVENT_CHANGE, APP_EVENT_SUBMIT } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
-import { IEvents } from '../base/events';
+import { IEvents } from '../base/Events';
 
 interface IFormState {
 	valid: boolean;
@@ -29,19 +30,19 @@ export class Form<T> extends Component<IFormState> {
 
 		this.container.addEventListener('submit', (e: Event) => {
 			e.preventDefault();
-			this.events.emit(`${this.container.name}:submit`);
+			this.events.emit(APP_EVENT_SUBMIT(this.container.name));
 		});
 	}
 
 	protected onInputChange(field: keyof T, value: string) {
-		this.events.emit(`${this.container.name}.${String(field)}:change`, {
+		this.events.emit(APP_EVENT_CHANGE(this.container.name, String(field)), {
 			field,
 			value,
 		});
 	}
 
 	set valid(value: boolean) {
-		this._submit.disabled = !value;
+		this.setDisabled(this._submit, !value);
 	}
 
 	set errors(value: string) {

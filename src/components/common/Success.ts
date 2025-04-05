@@ -1,3 +1,4 @@
+import { TOTAL_MESSAGE } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 
@@ -31,6 +32,6 @@ export class Success extends Component<ISuccess> {
 	}
 
 	set total(value: string) {
-		this.setText(this._total, `Списано ${value} синапсов`);
+		this.setText(this._total, TOTAL_MESSAGE(value));
 	}
 }

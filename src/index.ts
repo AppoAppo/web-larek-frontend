@@ -1,5 +1,5 @@
 import { AppState } from './components/AppData';
-import { EventEmitter } from './components/base/events';
+import { EventEmitter } from './components/base/Events';
 import { CardInBasket, CardInCatalog, CardInModal } from './components/Cards';
 import { Basket } from './components/Basket';
 import { Modal } from './components/common/Modal';
@@ -10,13 +10,18 @@ import { Order } from './components/Order';
 import { Page } from './components/Page';
 import './scss/styles.scss';
 import {
-	CardModalActions,
 	IOrderContacts,
 	IOrderPayment,
 	IProduct,
 	PaymentStatus,
 } from './types';
-import { API_URL, CDN_URL } from './utils/constants';
+import {
+	API_URL,
+	CDN_URL,
+	CARD_MODAL_ACTIONS,
+	DEFAULT_BLOCK_NAME,
+	ORDER_PAYMENT_FIELDS,
+} from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 
 const events = new EventEmitter();
@@ -57,9 +62,13 @@ const contacts = new Contacts(cloneTemplate(contactsTemplate), events);
 //Данные загружены с сервера
 events.on('initialData:loaded', () => {
 	page.catalog = appData.catalog.map((item) => {
-		const card = new CardInCatalog('card', cloneTemplate(cardCatalogTemplate), {
-			onClick: () => events.emit('card:select', item),
-		});
+		const card = new CardInCatalog(
+			DEFAULT_BLOCK_NAME,
+			cloneTemplate(cardCatalogTemplate),
+			{
+				onClick: () => events.emit('card:select', item),
+			}
+		);
 		return card.render({
 			title: item.title,
 			image: item.image,
@@ -98,7 +107,9 @@ events.on('basket:open', () => {
 });
 
 events.on('card-product:presence', (presence: { value: boolean }) => {
-	cardModal.buttonText = presence.value ? 'Удалить' : 'Купить';
+	cardModal.buttonText = presence.value
+		? CARD_MODAL_ACTIONS.remove
+		: CARD_MODAL_ACTIONS.buy;
 });
 
 events.on('card:delete', (item: IProduct) => {
@@ -128,7 +139,7 @@ events.on('card-product:button', (event: { value: string }) => {
 	api
 		.getProductItem(appData.preview)
 		.then((result) => {
-			if (event.value === CardModalActions.remove) {
+			if (event.value === CARD_MODAL_ACTIONS.remove) {
 				appData.removeFromBasket(result);
 			} else {
 				appData.addToBasket(result);
@@ -155,22 +166,27 @@ events.on('preview:changed', (item: IProduct) => {
 		cardModal.buttonText = appData.basket.some(
 			(basketItem) => basketItem.id === item.id
 		)
-			? CardModalActions.remove
-			: CardModalActions.buy;
+			? CARD_MODAL_ACTIONS.remove
+			: CARD_MODAL_ACTIONS.buy;
 	};
 
 	if (item) {
-		api
-			.getProductItem(item.id)
-			.then((result) => {
-				showItem(result);
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+		showItem(item);
 	} else {
 		modal.close();
 	}
+});
+
+// Открыть форму платежа
+events.on('order:open', () => {
+	modal.render({
+		content: order.render({
+			payment: appData.order.payment,
+			address: '',
+			valid: false,
+			errors: [],
+		}),
+	});
 });
 
 // Отправлена форма заказа
@@ -184,16 +200,17 @@ events.on('order:submit', () => {
 		}),
 	});
 });
+
 // Отправлена форма контактов с данными на бек
 events.on('contacts:submit', () => {
 	api
 		.orderProducts(appData.orderData)
 		.then((result) => {
+			appData.clearBasket();
+			page.counter = 0;
 			const success = new Success(cloneTemplate(successTemplate), {
 				onClick: () => {
 					modal.close();
-					appData.clearBasket();
-					page.counter = 0;
 				},
 			});
 			success.total = result.total.toString();
@@ -228,7 +245,7 @@ events.on(
 	/^order\..*:change/,
 	(data: { field: keyof IOrderPayment; value: string }) => {
 		appData.setOrderField(data.field, data.value);
-		if (data.field === 'payment') {
+		if (data.field === ORDER_PAYMENT_FIELDS.payment) {
 			order.payment = data.value as PaymentStatus;
 		}
 	}
@@ -240,18 +257,6 @@ events.on(
 		appData.setContactField(data.field, data.value);
 	}
 );
-
-// Открыть форму платежа
-events.on('order:open', () => {
-	modal.render({
-		content: order.render({
-			payment: undefined,
-			address: '',
-			valid: false,
-			errors: [],
-		}),
-	});
-});
 
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {

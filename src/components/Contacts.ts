@@ -1,5 +1,6 @@
 import { IOrderContacts } from '../types';
-import { IEvents } from './base/events';
+import { ORDER_CONTACTS_FIELDS } from '../utils/constants';
+import { IEvents } from './base/Events';
 import { Form } from './common/Form';
 
 export class Contacts extends Form<IOrderContacts> {
@@ -8,12 +9,18 @@ export class Contacts extends Form<IOrderContacts> {
 	}
 
 	set phone(value: string) {
-		(this.container.elements.namedItem('phone') as HTMLInputElement).value =
-			value;
+		(
+			this.container.elements.namedItem(
+				ORDER_CONTACTS_FIELDS.phone
+			) as HTMLInputElement
+		).value = value;
 	}
 
 	set email(value: string) {
-		(this.container.elements.namedItem('email') as HTMLInputElement).value =
-			value;
+		(
+			this.container.elements.namedItem(
+				ORDER_CONTACTS_FIELDS.email
+			) as HTMLInputElement
+		).value = value;
 	}
 }

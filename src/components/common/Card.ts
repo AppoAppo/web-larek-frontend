@@ -1,3 +1,4 @@
+import { PRICE_MESSAGES } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 
@@ -16,7 +17,6 @@ export interface ICard {
 export class Card extends Component<ICard> {
 	protected _title: HTMLElement;
 	protected _price: HTMLElement;
-
 	protected _button?: HTMLButtonElement;
 
 	constructor(
@@ -56,7 +56,9 @@ export class Card extends Component<ICard> {
 	}
 
 	set price(value: string) {
-		const priceText = value ? `${value} синапсов` : 'Бесценно';
+		const priceText = value
+			? PRICE_MESSAGES.WITH_VALUE(value)
+			: PRICE_MESSAGES.PRICELESS;
 		this.setText(this._price, priceText);
 	}
 

@@ -1,6 +1,7 @@
+import { APP_EVENTS } from '../utils/constants';
 import { ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
-import { IEvents } from './base/events';
+import { IEvents } from './base/Events';
 
 interface IPage {
 	counter: number;
@@ -23,7 +24,7 @@ export class Page extends Component<IPage> {
 		this._wrapper = ensureElement<HTMLElement>('.page__wrapper');
 
 		this._basket.addEventListener('click', () => {
-			this.events.emit('basket:open');
+			this.events.emit(APP_EVENTS.basketOpen);
 		});
 	}
 

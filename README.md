@@ -1,4 +1,5 @@
 https://github.com/AppoAppo/web-larek-frontend.git
+
 # Проектная работа "Веб-ларек"
 
 Стек: HTML, SCSS, TS, Webpack
@@ -61,7 +62,7 @@ export interface IProduct {
 	image: string;
 	title: string;
 	category: string;
-	price: number;
+	price: number | null;
 }
 ```
 
@@ -79,6 +80,8 @@ export interface IAppState {
 ## Данные платежа
 
 ```typescript
+export type PaymentStatus = 'card' | 'cash';
+
 export interface IOrderPayment {
 	payment: PaymentStatus;
 	address: string;
@@ -121,8 +124,66 @@ export interface IOrderResult {
 ## Ошибки валидации форм
 
 ```typescript
-export type FormErrors = Partial<Record<keyof IOrder, string>>;
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
 ```
+
+---
+
+## Константы приложения
+
+- **`API_URL`**  
+  Базовый URL для API.
+
+- **`CDN_URL`**  
+  Базовый URL для CDN (контента).
+
+- **`PAYMENT_STATUS`**  
+  Перечисление видов оплаты: `card` и `cash`.
+
+- **`CARD_MODAL_ACTIONS`**  
+  Тексты действий в модальном окне товара: `Удалить` и `Купить`.
+
+- **`CATEGORY_CLASS`**  
+  Соответствие категорий карточек и их CSS-классов.
+
+- **`DEFAULT_BLOCK_NAME`**  
+  Имя блока по умолчанию: `card`.
+
+- **`IMAGE_EXTENSION`**  
+  Расширение изображений: `png`.
+
+- **`PAYMENT_FIELD`**  
+  Название поля оплаты: `payment`.
+
+- **`ORDER_ACTIVE_BUTTON_CLASS`**  
+  Класс активной кнопки: `button_alt-active`.
+
+- **`BASKET_IS_EMPTY`**  
+  Текст для пустой корзины: `Корзина пуста`.
+
+- **`TOTAL_MESSAGE`**  
+  Шаблон сообщения о списании: `Списано ${value} синапсов`.
+
+- **`PRICE_MESSAGES`**  
+  Сообщения о цене: `WITH_VALUE` (`${value} синапсов`), `PRICELESS` (`Бесценно`).
+
+- **`ORDER_PAYMENT_FIELDS`**  
+  Поля формы оплаты: `payment`, `address`.
+
+- **`ORDER_CONTACTS_FIELDS`**  
+  Поля формы контактов: `phone`, `email`.
+
+- **`VALIDATION_ERRORS`**  
+  Тексты ошибок валидации: `phone`, `email`, `address`, `payment`.
+
+- **`APP_EVENT_SUBMIT`**  
+  Событие отправки формы.
+
+- **`APP_EVENT_CHANGE`**  
+  Событие изменения значения в поле формы.
+
+- **`APP_EVENTS`**  
+  События приложения.
 
 ---
 
@@ -142,7 +203,6 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
 Базовая логика отправки запросов.
 
-- **Конструктор**: Принимает базовый адрес сервера и опциональные заголовки.
 - **Методы**:
   - `get`: Выполняет GET-запрос, возвращает промис с ответом сервера.
   - `post`: Отправляет данные в JSON на указанный ендпоинт (по умолчанию POST, метод переопределяем).
@@ -157,6 +217,23 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
   - `trigger`: Возвращает функцию для генерации события.
   - `onAll`, `offAll`: Служебные методы для отладки.
 
+### Класс `Component<T>`
+
+Базовый класс для компонентов.
+
+- **Метод `render`**: Обновляет данные через сеттеры, возвращает контейнер.
+
+### Класс `Modal`
+
+Реализует модальное окно.
+
+- **Поля**:
+  - `_content: HTMLElement` — Контент модального окна.
+  - `_closeButton: HTMLButtonElement` — Кнопка закрытия.
+- **Методы**:
+  - `open`: Открывает модалку.
+  - `close`: Закрывает модалку (клику на оверлей или крестик).
+
 ---
 
 ## Слой данных
@@ -165,62 +242,36 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
 Управляет состоянием приложения.
 
-#### Свойства
-
-- `basket: IProduct[]` — Товары в корзине.
-- `catalog: IProduct[]` — Список товаров в каталоге.
-- `order: Partial<IOrderPayment>` — Данные оплаты.
-- `contacts: Partial<IOrderContacts>` — Контактные данные.
-- `preview: string | null` — ID товара для превью.
-- `formErrors: FormErrors` — Ошибки валидации.
-
-#### Методы
-
-- **`addToBasket(item: IProduct)`**: Добавляет товар в корзину, вызывает `card-product:presence`.
-- **`removeFromBasket(item: IProduct)`**: Удаляет товар из корзины, вызывает `card-product:presence`.
-- **`setCatalog(items: IProduct[])`**: Обновляет каталог, вызывает `items:changed`.
-- **`setPreview(item: IProduct)`**: Устанавливает товар для превью, вызывает `preview:changed`.
-- **`setOrderField(field: keyof IOrderPayment, value: string)`**: Обновляет поле заказа.
-- **`validateOrder()`**: Проверяет валидность заказа, вызывает `formErrors.order:change`.
-- **`setContactField(field: keyof IOrderContacts, value: string)`**: Обновляет поле контактов.
-- **`validateContact()`**: Проверяет валидность контактов, вызывает `formErrors.contact:change`.
-- **`clearBasket()`**: Очищает корзину.
-
-#### Геттер
-
-- **`orderData: IOrder`**: Возвращает объект заказа с полями `payment`, `address`, `email`, `phone`, `total`, `items`.
-
-#### События
-
-- `card-product:presence` — Изменение состава корзины.
-- `items:changed` — Обновление каталога.
-- `preview:changed` — Изменение превью.
-- `order:ready` — Данные заказа заполнены.
-- `contacts:ready` — Контакты заполнены.
-- `formErrors.*:change` — Ошибки валидации.
+- **Поля**:
+  - `basket: IProduct[]` — Товары в корзине.
+  - `catalog: IProduct[]` — Список товаров в каталоге.
+  - `order: Partial<IOrderPayment>` — Данные оплаты.
+  - `contacts: Partial<IOrderContacts>` — Контактные данные.
+  - `preview: string | null` — ID товара для превью.
+  - `formErrors: FormErrors` — Ошибки валидации.
+- **Методы**:
+  - `addToBasket(item: IProduct)`: Добавляет товар в корзину, вызывает `card-product:presence`.
+  - `removeFromBasket(item: IProduct)`: Удаляет товар из корзины, вызывает `card-product:presence`.
+  - `setCatalog(items: IProduct[])`: Обновляет каталог, вызывает `items:changed`.
+  - `setPreview(item: IProduct)`: Устанавливает товар для превью, вызывает `preview:changed`.
+  - `setOrderField(field: keyof IOrderPayment, value: string)`: Обновляет поле заказа.
+  - `validateOrder()`: Проверяет валидность заказа, вызывает `formErrors.order:change`.
+  - `setContactField(field: keyof IOrderContacts, value: string)`: Обновляет поле контактов.
+  - `validateContact()`: Проверяет валидность контактов, вызывает `formErrors.contact:change`.
+  - `clearBasket()`: Очищает корзину.
+- **Геттеры**:
+  - `orderData: IOrder` — Возвращает объект заказа с полями `payment`, `address`, `email`, `phone`, `total`, `items`.
+- **События**:
+  - `card-product:presence` — Изменение состава корзины.
+  - `items:changed` — Обновление каталога.
+  - `preview:changed` — Изменение превью.
+  - `order:ready` — Данные заказа заполнены.
+  - `contacts:ready` — Контакты заполнены.
+  - `formErrors.*:change` — Ошибки валидации.
 
 ---
 
 ## Слой представления
-
-### Класс `Component<T>`
-
-Базовый класс для компонентов.
-
-- **Конструктор**: Принимает контейнер (DOM-элемент).
-- **Метод `render`**: Обновляет данные через сеттеры, возвращает контейнер.
-
-### Класс `Modal`
-
-Реализует модальное окно.
-
-- **Конструктор**: `constructor(selector: string, events: IEvents)`.
-- **Поля**:
-  - `_content: HTMLElement` — Контент модального окна.
-  - `_closeButton: HTMLButtonElement` — Кнопка закрытия.
-- **Методы**:
-  - `open`: Открывает модалку.
-  - `close`: Закрывает модалку (по Esc, клику на оверлей или крестик).
 
 ### Класс `Form<T>`
 
@@ -231,7 +282,6 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
   - `_errors: HTMLElement` — Контейнер ошибок.
   - `container: HTMLFormElement` — Элемент формы.
   - `events: IEvents` — Система событий.
-- **Конструктор**: Инициализирует форму, добавляет обработчики `input` и `submit`.
 - **Методы**:
   - `onInputChange(field: keyof T, value: string)`: Эмитит событие `${имя_формы}.${поле}:change`.
   - `render(state: Partial<T> & IFormState)`: Обновляет форму (валидность, ошибки, значения).
@@ -314,6 +364,8 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
 - **Свойства**:
   - `payment`: Устанавливает способ оплаты (класс `button_alt-active`).
   - `address`: Устанавливает адрес.
+- **События**:
+  - `order.payment:change`: изменение формы оплаты.
 
 ### Класс `Page`
 
@@ -328,6 +380,24 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
   - `counter`: Устанавливает счетчик.
   - `catalog`: Обновляет каталог.
   - `locked`: Блокирует/разблокирует прокрутку.
+- **События**:
+  - `basket:open`: открытие корзины.
+
+### Класс `Basket`
+
+Управляет отображением корзины с товарами, общей суммой и кнопкой оформления заказа.
+
+- **Поля**:
+  - `_list: HTMLElement` — Контейнер для списка товаров.
+  - `_total: HTMLElement` — Элемент с общей суммой.
+  - `_button: HTMLButtonElement` — Кнопка оформления заказа.
+- **Сеттеры**:
+  - `items: HTMLElement[]` — Устанавливает список товаров в `_list`, при пустом списке отображает `BASKET_IS_EMPTY`.
+  - `selected: string[]` — Управляет состоянием кнопки: активирует при наличии товаров, иначе деактивирует.
+  - `valid: boolean` — Устанавливает свойство `disabled` кнопки: `true` — отключена, `false` — активна.
+  - `total: number` — Устанавливает отформатированную сумму в `_total` с помощью `formatNumber`.
+- **События**:
+  - `order:open` — Срабатывает при клике на кнопку оформления, открывает форму заказа.
 
 ---
 

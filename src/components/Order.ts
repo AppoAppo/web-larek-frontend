@@ -1,6 +1,12 @@
-import { IOrderPayment, PaymentStatus } from '../types';
+import { IOrderPayment } from '../types';
+import {
+	APP_EVENTS,
+	ORDER_ACTIVE_BUTTON_CLASS,
+	ORDER_PAYMENT_FIELDS,
+	PAYMENT_STATUS,
+} from '../utils/constants';
 import { ensureElement } from '../utils/utils';
-import { IEvents } from './base/events';
+import { IEvents } from './base/Events';
 import { Form } from './common/Form';
 
 export class Order extends Form<IOrderPayment> {
@@ -17,35 +23,38 @@ export class Order extends Form<IOrderPayment> {
 			this.container
 		);
 		this._buttonCash.addEventListener('click', () => {
-			events.emit('order.payment:change', {
-				field: 'payment',
-				value: 'cash',
+			events.emit(APP_EVENTS.orderChangePayment, {
+				field: ORDER_PAYMENT_FIELDS.payment,
+				value: PAYMENT_STATUS.bycash,
 			});
 		});
 		this._buttonCard.addEventListener('click', () => {
-			events.emit('order.payment:change', {
-				field: 'payment',
-				value: 'card',
+			events.emit(APP_EVENTS.orderChangePayment, {
+				field: ORDER_PAYMENT_FIELDS.payment,
+				value: PAYMENT_STATUS.bycard,
 			});
 		});
 	}
 
-	set payment(value: PaymentStatus) {
+	set payment(value: string) {
 		if (!value) return;
 		switch (value) {
-			case 'card':
-				this._buttonCard.classList.toggle('button_alt-active', true);
-				this._buttonCash.classList.toggle('button_alt-active', false);
+			case PAYMENT_STATUS.bycard:
+				this.toggleClass(this._buttonCard, ORDER_ACTIVE_BUTTON_CLASS, true);
+				this.toggleClass(this._buttonCash, ORDER_ACTIVE_BUTTON_CLASS, false);
 				break;
-			case 'cash':
-				this._buttonCash.classList.toggle('button_alt-active', true);
-				this._buttonCard.classList.toggle('button_alt-active', false);
+			case PAYMENT_STATUS.bycash:
+				this.toggleClass(this._buttonCash, ORDER_ACTIVE_BUTTON_CLASS, true);
+				this.toggleClass(this._buttonCard, ORDER_ACTIVE_BUTTON_CLASS, false);
 				break;
 		}
 	}
 
 	set address(value: string) {
-		(this.container.elements.namedItem('address') as HTMLInputElement).value =
-			value;
+		(
+			this.container.elements.namedItem(
+				ORDER_PAYMENT_FIELDS.address
+			) as HTMLInputElement
+		).value = value;
 	}
 }
