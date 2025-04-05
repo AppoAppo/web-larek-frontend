@@ -1,6 +1,6 @@
 import { IOrderContacts } from '../types';
 import { ORDER_CONTACTS_FIELDS } from '../utils/constants';
-import { IEvents } from './base/events';
+import { IEvents } from './base/Events';
 import { Form } from './common/Form';
 
 export class Contacts extends Form<IOrderContacts> {

@@ -1,7 +1,7 @@
 import { APP_EVENTS, BASKET_IS_EMPTY } from '../utils/constants';
 import { createElement, ensureElement, formatNumber } from '../utils/utils';
 import { Component } from './base/Component';
-import { EventEmitter } from './base/events';
+import { EventEmitter } from './base/Events';
 
 interface IBasketView {
 	items: HTMLElement[];

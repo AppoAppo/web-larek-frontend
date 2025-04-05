@@ -1,5 +1,5 @@
 import { AppState } from './components/AppData';
-import { EventEmitter } from './components/base/events';
+import { EventEmitter } from './components/base/Events';
 import { CardInBasket, CardInCatalog, CardInModal } from './components/Cards';
 import { Basket } from './components/Basket';
 import { Modal } from './components/common/Modal';

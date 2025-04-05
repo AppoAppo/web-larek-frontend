@@ -1,7 +1,7 @@
 import { APP_EVENT_CHANGE, APP_EVENT_SUBMIT } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
-import { IEvents } from '../base/events';
+import { IEvents } from '../base/Events';
 
 interface IFormState {
 	valid: boolean;
