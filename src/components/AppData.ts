@@ -101,6 +101,17 @@ export class AppState extends Model<IAppState> {
 		this.contacts = { phone: '', email: '' };
 	}
 
+	getProductById(id: string): IProduct {
+		return this.catalog.find((item) => item.id === id);
+	}
+
+	getBasketTotal(): number {
+		return this.basket.reduce(
+			(accumulator, currentItem) => accumulator + currentItem.price,
+			0
+		);
+	}
+
 	get orderData(): IOrder {
 		return {
 			payment: this.order.payment,

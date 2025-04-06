@@ -98,12 +98,8 @@ events.on(APP_EVENTS.basketOpen, () => {
 			category: item.category,
 		});
 	});
-	const basketTotal = appData.basket.reduce(
-		(accumulator, currentItem) => accumulator + currentItem.price,
-		0
-	);
+	const basketTotal = appData.getBasketTotal();
 	basket.total = basketTotal;
-	basket.valid = basketTotal > 0 ? true : false;
 	modal.render({ content: basket.render() });
 });
 
@@ -127,55 +123,39 @@ events.on(APP_EVENTS.cardDelete, (item: IProduct) => {
 			category: item.category,
 		});
 	});
-	basket.total = appData.basket.reduce(
-		(accumulator, currentItem) => accumulator + currentItem.price,
-		0
-	);
+	const basketTotal = appData.getBasketTotal();
+	basket.total = basketTotal;
 	page.counter = appData.basket.length;
 	modal.render({ content: basket.render() });
 });
 
 events.on(APP_EVENTS.cardProductButton, (event: { value: string }) => {
 	if (!appData.preview) return;
-	api
-		.getProductItem(appData.preview)
-		.then((result) => {
-			if (event.value === CARD_MODAL_ACTIONS.remove) {
-				appData.removeFromBasket(result);
-			} else {
-				appData.addToBasket(result);
-			}
-			page.counter = appData.basket.length;
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+	const item = appData.getProductById(appData.preview);
+	if (event.value === CARD_MODAL_ACTIONS.remove) {
+		appData.removeFromBasket(item);
+	} else {
+		appData.addToBasket(item);
+	}
+	page.counter = appData.basket.length;
 });
 
 // Изменен открытый выбранный лот
 events.on(APP_EVENTS.previewChanged, (item: IProduct) => {
-	const showItem = (item: IProduct) => {
-		modal.render({
-			content: cardModal.render({
-				title: item.title,
-				image: item.image,
-				description: item.description,
-				price: item.price,
-				category: item.category,
-			}),
-		});
-		cardModal.buttonText = appData.basket.some(
-			(basketItem) => basketItem.id === item.id
-		)
-			? CARD_MODAL_ACTIONS.remove
-			: CARD_MODAL_ACTIONS.buy;
-	};
-
-	if (item) {
-		showItem(item);
-	} else {
-		modal.close();
-	}
+	modal.render({
+		content: cardModal.render({
+			title: item.title,
+			image: item.image,
+			description: item.description,
+			price: item.price,
+			category: item.category,
+		}),
+	});
+	cardModal.buttonText = appData.basket.some(
+		(basketItem) => basketItem.id === item.id
+	)
+		? CARD_MODAL_ACTIONS.remove
+		: CARD_MODAL_ACTIONS.buy;
 });
 
 // Открыть форму платежа

@@ -254,6 +254,8 @@ export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
   - `setContactField(field: keyof IOrderContacts, value: string)`: Обновляет поле контактов.
   - `validateContact()`: Проверяет валидность контактов, вызывает `formErrors.contact:change`.
   - `clearBasket()`: Очищает корзину.
+  - `getProductById(id: string): IProduct`: возвращает товар по id.
+  - `getBasketTotal(): number`: возвращает сумму корзины.
 - **Геттеры**:
   - `orderData: IOrder` — Возвращает объект заказа с полями `payment`, `address`, `email`, `phone`, `total`, `items`.
 - **События**:
@@ -399,8 +401,6 @@ export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
   - `_button: HTMLButtonElement` — Кнопка оформления заказа.
 - **Сеттеры**:
   - `items: HTMLElement[]` — Устанавливает список товаров в `_list`, при пустом списке отображает `BASKET_IS_EMPTY`.
-  - `selected: string[]` — Управляет состоянием кнопки: активирует при наличии товаров, иначе деактивирует.
-  - `valid: boolean` — Устанавливает свойство `disabled` кнопки: `true` — отключена, `false` — активна.
   - `total: number` — Устанавливает отформатированную сумму в `_total` с помощью `formatNumber`.
 - **События**:
   - `order:open` — Срабатывает при клике на кнопку оформления, открывает форму заказа.
@@ -416,7 +416,6 @@ API для работы с бэкендом.
 - **Поля**:
   - `cdn: string` — Адрес CDN.
 - **Методы**:
-  - `getProductItem(id: string)`: Получает продукт по ID.
   - `getProductList()`: Получает список продуктов.
   - `orderProducts(order: IOrder)`: Отправляет заказ.
 

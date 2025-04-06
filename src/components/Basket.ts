@@ -41,18 +41,8 @@ export class Basket extends Component<IBasketView> {
 		}
 	}
 
-	set selected(items: string[]) {
-		if (items.length) {
-			this.setDisabled(this._button, false);
-		} else {
-			this.setDisabled(this._button, true);
-		}
-	}
-
-	set valid(value: boolean) {
-		this._button.disabled = !value;
-	}
 	set total(total: number) {
 		this.setText(this._total, formatNumber(total));
+		this.setDisabled(this._button, !(total > 0 ? true : false));
 	}
 }
